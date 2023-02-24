@@ -1,0 +1,14 @@
+services:
+  db:
+    container_name: dummy-campus-db
+    image: mariadb:latest
+    ports:
+      - ${DB_PORT}:3306
+    environment:
+      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MARIADB_DATABASE=${DB_NAME}
+    volumes:
+      - campus-db-data:/var/lib/mysql
+
+volumes:
+  campus-db-data:
