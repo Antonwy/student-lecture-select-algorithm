@@ -38,7 +38,7 @@ func Init() {
 		return
 	}
 
-	// PopulateWithDummyData()
+	PopulateWithDummyData()
 }
 
 func Migrate() error {
