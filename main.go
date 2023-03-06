@@ -48,6 +48,7 @@ func FindPerfectMatch() {
 		devicesDetailsMap,
 		lectures,
 		maxAttendedLecturesCount,
+		false,
 	)
 
 	log.Infof("Found perfect set: %d (students) in %s", len(*overlappingStudents), time.Now().Sub(startTime))
@@ -68,6 +69,7 @@ func getOverlapping(
 	devicesDetails *map[string]model.IOSDeviceWithAvgResponseTime,
 	lectures *[]model.IOSLecture,
 	maxAttendedLecturesCount int,
+	useAverageResponseTime bool,
 ) *[]string {
 	var overlapped []string
 	var overlappingStudents []string
@@ -80,8 +82,9 @@ func getOverlapping(
 		newMax, overlappingLectures = findBestNextMatch(
 			devicesLectures,
 			devicesDetails,
-			&overlappingStudents,
+			&overlapped,
 			currentMaxAttended,
+			useAverageResponseTime,
 		)
 
 		if newMax == "" {
@@ -109,6 +112,7 @@ func findBestNextMatch(
 	devicesDetails *map[string]model.IOSDeviceWithAvgResponseTime,
 	overlapped *[]string,
 	currentMaxAttended int,
+	useAverageResponseTime bool,
 ) (string, *[]string) {
 	maxAttends := 0
 	studentWithMaxAttends := ""
@@ -122,11 +126,23 @@ func findBestNextMatch(
 
 		newAttendsCount := len(*newAttends)
 
-		if newAttendsCount > maxAttends || (newAttendsCount == maxAttends && (*devicesDetails)[student].AvgResponseTime < responseTime) {
-			maxAttends = len(*newAttends)
-			studentWithMaxAttends = student
-			overlappingLectures = *newAttends
-			responseTime = (*devicesDetails)[student].AvgResponseTime
+		if useAverageResponseTime {
+			if newAttendsCount > maxAttends || (newAttendsCount == maxAttends && (*devicesDetails)[student].AvgResponseTime < responseTime) {
+				maxAttends = len(*newAttends)
+				studentWithMaxAttends = student
+				overlappingLectures = *newAttends
+				responseTime = (*devicesDetails)[student].AvgResponseTime
+			}
+		} else {
+			if newAttendsCount > maxAttends {
+				maxAttends = len(*newAttends)
+				studentWithMaxAttends = student
+				overlappingLectures = *newAttends
+
+				if maxAttends == currentMaxAttended {
+					break
+				}
+			}
 		}
 	}
 

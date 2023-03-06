@@ -38,7 +38,7 @@ func Init() {
 		return
 	}
 
-	PopulateWithDummyData()
+	// PopulateWithDummyData()
 }
 
 func Migrate() error {
@@ -104,7 +104,7 @@ func GetMaxAttendedLecturesCount() int {
 
 func PopulateWithDummyData() {
 	devices := fakeDevices(20000)
-	lectures := fakeLectures(1000)
+	lectures := fakeLectures(500)
 
 	fakeDeviceLectureRelation(devices, lectures)
 
@@ -309,13 +309,6 @@ with ios_devices_response_time
 select d.*, drt.avg_response_time as avg_response_time
 from ios_devices d
          left join ios_devices_response_time drt on d.device_id = drt.device_id
-where not exists(select drl.device_id
-                 from ios_device_request_logs drl
-                 where drl.device_id = d.device_id
-                   and drl.created_at
-                     > subdate(now()
-                           , interval 30 minute)
-                 limit 1)
 group by d.device_id
 order by avg_response_time asc;
 `
