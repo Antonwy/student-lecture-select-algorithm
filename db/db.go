@@ -62,10 +62,10 @@ func GetDevices() *[]model.IOSDevice {
 	return &devices
 }
 
-func GetReadyDevices() *[]model.IOSDeviceWithAvgResponseTime {
-	var devices []model.IOSDeviceWithAvgResponseTime
+func GetReadyDevices() *[]model.IOSDevice {
+	var devices []model.IOSDevice
 
-	DB.Raw(buildDevicesWithAvgResponseTimeQuery()).Scan(&devices)
+	DB.Find(&devices)
 
 	return &devices
 }
@@ -73,7 +73,7 @@ func GetReadyDevices() *[]model.IOSDeviceWithAvgResponseTime {
 func GetLectures() *[]model.IOSLecture {
 	var lectures []model.IOSLecture
 
-	DB.Model(&model.IOSLecture{}).Find(&lectures)
+	DB.Find(&lectures)
 
 	return &lectures
 }
@@ -81,7 +81,7 @@ func GetLectures() *[]model.IOSLecture {
 func GetDeviceLectures() *[]model.IOSDeviceLecture {
 	var deviceLectures []model.IOSDeviceLecture
 
-	DB.Model(&model.IOSDeviceLecture{}).Find(&deviceLectures)
+	DB.Find(&deviceLectures)
 
 	return &deviceLectures
 }
@@ -296,20 +296,4 @@ func pickNRandomElements[T interface{}](n int, elements *[]T) []T {
 	}
 
 	return result
-}
-
-func buildDevicesWithAvgResponseTimeQuery() string {
-	return `
-with ios_devices_response_time
-         as (select avg(timestampdiff(SECOND, drl.created_at, drl.handled_at)) as avg_response_time, d.device_id
-             from ios_devices d
-                      left join ios_device_request_logs drl on d.device_id = drl.device_id
-             where drl.handled_at is not null
-             group by d.device_id)
-select d.*, drt.avg_response_time as avg_response_time
-from ios_devices d
-         left join ios_devices_response_time drt on d.device_id = drt.device_id
-group by d.device_id
-order by avg_response_time asc;
-`
 }
